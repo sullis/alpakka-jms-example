@@ -57,6 +57,7 @@ class JmsExampleSpec extends WordSpec
         destinationQueue.toSeq shouldBe Seq("a", "b", "c")
       }
 
+      broker.clientConnectionCount shouldBe 2
       broker.stop()
       actorSys.terminate()
     }

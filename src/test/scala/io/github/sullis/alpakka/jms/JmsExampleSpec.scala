@@ -28,10 +28,11 @@ class JmsExampleSpec extends WordSpec
       val materializer = buildActorMaterializer(actorSys)
 
       val broker = JmsBroker()
+      val jmsConnFactory = broker.createConnectionFactory
       val sourceQueue = new JmsQueue(broker)
       val destinationQueue = new JmsQueue(broker)
 
-      val runnable = buildRunnableGraph(sourceQueue, destinationQueue, actorSys, materializer)
+      val runnable = buildRunnableGraph(jmsConnFactory, sourceQueue.queueName, destinationQueue.queueName, actorSys, materializer)
       runnable.run()(materializer)
 
       sourceQueue.size shouldBe 0
@@ -64,15 +65,16 @@ class JmsExampleSpec extends WordSpec
   }
 
   private def buildRunnableGraph(
-                     sourceQ: JmsQueue,
-                     destinationQ: JmsQueue,
+                     jmsConnFactory: javax.jms.ConnectionFactory,
+                     sourceQName: String,
+                     destinationQName: String,
                      actorSys: ActorSystem,
                      materializer: ActorMaterializer): RunnableGraph[(JmsConsumerControl, Future[Done])] = {
 
-    val consumerSettings = JmsConsumerSettings(actorSys, sourceQ.createConnectionFactory).withQueue(sourceQ.queueName)
+    val consumerSettings = JmsConsumerSettings(actorSys, jmsConnFactory).withQueue(sourceQName)
     val source = buildJmsSource(consumerSettings)
 
-    val producerSettings = JmsProducerSettings(actorSys, destinationQ.createConnectionFactory).withQueue(destinationQ.queueName)
+    val producerSettings = JmsProducerSettings(actorSys, jmsConnFactory).withQueue(destinationQName)
     val sink = JmsProducer.textSink(producerSettings)
 
     source

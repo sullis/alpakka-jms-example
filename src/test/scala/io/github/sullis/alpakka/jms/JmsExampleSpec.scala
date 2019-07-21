@@ -1,13 +1,14 @@
 package io.github.sullis.alpakka.jms
 
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
-import akka.Done
+import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
 import akka.stream.alpakka.jms.{JmsConsumerSettings, JmsProducerSettings, TxEnvelope}
 import akka.stream.alpakka.jms.scaladsl.{JmsConsumer, JmsConsumerControl, JmsProducer}
-import akka.stream.scaladsl.{Keep, RunnableGraph, Source}
+import akka.stream.scaladsl.{Keep, RestartSource, RunnableGraph, Source}
 import javax.jms.TextMessage
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatest.concurrent.Eventually
@@ -15,6 +16,7 @@ import org.scalatest.time.{Milliseconds, Seconds, Span}
 import jmstestkit.{JmsBroker, JmsQueue}
 
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 
 class JmsExampleSpec extends WordSpec
   with Matchers
@@ -64,15 +66,23 @@ class JmsExampleSpec extends WordSpec
       })
   }
 
+  def buildRestartSource(sourceFactory: () => Source[TextMessage, JmsConsumerControl]): Source[TextMessage, NotUsed] = {
+    RestartSource.withBackoff(
+      minBackoff = FiniteDuration(5, TimeUnit.SECONDS),
+      maxBackoff = FiniteDuration(1, TimeUnit.MINUTES),
+      randomFactor = 2.0d
+    )(sourceFactory)
+  }
+
   private def buildRunnableGraph(
                      jmsConnFactory: javax.jms.ConnectionFactory,
                      sourceQName: String,
                      destinationQName: String,
                      actorSys: ActorSystem,
-                     materializer: ActorMaterializer): RunnableGraph[(JmsConsumerControl, Future[Done])] = {
+                     materializer: ActorMaterializer): RunnableGraph[NotUsed] = {
 
     val consumerSettings = JmsConsumerSettings(actorSys, jmsConnFactory).withQueue(sourceQName)
-    val source = buildJmsSource(consumerSettings)
+    val source = buildRestartSource( () => buildJmsSource(consumerSettings))
 
     val producerSettings = JmsProducerSettings(actorSys, jmsConnFactory).withQueue(destinationQName)
     val sink = JmsProducer.textSink(producerSettings)
@@ -82,7 +92,7 @@ class JmsExampleSpec extends WordSpec
         case t: javax.jms.TextMessage => t.getText
         case other => sys.error("unexpected message type: " + other.getClass.getName)
       }
-      .toMat(sink)(Keep.both)
+      .toMat(sink)(Keep.none)
   }
 
   private def buildActorMaterializer(system: ActorSystem): ActorMaterializer = {

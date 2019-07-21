@@ -46,6 +46,9 @@ class JmsExampleSpec extends WordSpec
 
       sourceQueue.publishMessage("a")
       sourceQueue.publishMessage("b")
+
+      broker.closeClientConnections()
+
       sourceQueue.publishMessage("c")
 
       eventually {

@@ -73,7 +73,7 @@ class JmsExampleSpec extends WordSpec
       })
   }
 
-  def buildRestartSource(sourceFactory: () => Source[TextMessage, JmsConsumerControl]): Source[TextMessage, NotUsed] = {
+  private def buildRestartSource(sourceFactory: () => Source[TextMessage, JmsConsumerControl]): Source[TextMessage, NotUsed] = {
     RestartSource.withBackoff(
       minBackoff = minBackoff,
       maxBackoff = maxBackoff,

@@ -1,16 +1,19 @@
 package io.github.sullis.alpakka.jms
 
 import java.util.UUID
+
 import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
-import akka.stream.alpakka.jms.{JmsConsumerSettings, JmsProducerSettings}
+import akka.stream.alpakka.jms.{JmsConsumerSettings, JmsProducerSettings, TxEnvelope}
 import akka.stream.alpakka.jms.scaladsl.{JmsConsumer, JmsConsumerControl, JmsProducer}
-import akka.stream.scaladsl.{Keep, RunnableGraph}
+import akka.stream.scaladsl.{Keep, RunnableGraph, Source}
+import javax.jms.TextMessage
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import jmstestkit.{JmsBroker, JmsQueue}
+
 import scala.concurrent.Future
 
 class JmsExampleSpec extends WordSpec
@@ -50,6 +53,16 @@ class JmsExampleSpec extends WordSpec
 
   }
 
+  private def buildJmsSource(consumerSettings: JmsConsumerSettings): Source[TextMessage, JmsConsumerControl] = {
+    JmsConsumer.txSource(consumerSettings)
+      .map( txEnvelope => {
+        val tmsg = txEnvelope.message.asInstanceOf[javax.jms.TextMessage]
+        System.out.println("Hello: " + tmsg.getText)
+        txEnvelope.commit()
+        tmsg
+      })
+  }
+
   private def buildRunnableGraph(
                      sourceQ: JmsQueue,
                      destinationQ: JmsQueue,
@@ -57,13 +70,7 @@ class JmsExampleSpec extends WordSpec
                      materializer: ActorMaterializer): RunnableGraph[(JmsConsumerControl, Future[Done])] = {
 
     val consumerSettings = JmsConsumerSettings(actorSys, sourceQ.createConnectionFactory).withQueue(sourceQ.queueName)
-    val source = JmsConsumer.txSource(consumerSettings)
-      .map( txEnvelope => {
-        val tmsg = txEnvelope.message.asInstanceOf[javax.jms.TextMessage]
-        System.out.println("Hello: " + tmsg.getText)
-        txEnvelope.commit()
-        tmsg
-      })
+    val source = buildJmsSource(consumerSettings)
 
     val producerSettings = JmsProducerSettings(actorSys, destinationQ.createConnectionFactory).withQueue(destinationQ.queueName)
     val sink = JmsProducer.textSink(producerSettings)

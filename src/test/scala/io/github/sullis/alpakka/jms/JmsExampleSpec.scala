@@ -8,7 +8,7 @@ import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
 import akka.stream.alpakka.jms.{JmsConsumerSettings, JmsProducerSettings, TxEnvelope}
 import akka.stream.alpakka.jms.scaladsl.{JmsConsumer, JmsConsumerControl, JmsProducer}
-import akka.stream.scaladsl.{Keep, RestartSource, RunnableGraph, Source}
+import akka.stream.scaladsl.{Keep, RestartSink, RestartSource, RunnableGraph, Source}
 import javax.jms.TextMessage
 import org.scalatest.{Matchers, WordSpec}
 import org.scalatest.concurrent.Eventually
@@ -23,6 +23,10 @@ class JmsExampleSpec extends WordSpec
   with Eventually {
 
   implicit override val patienceConfig = PatienceConfig(Span(5, Seconds), Span(15, Milliseconds))
+
+  private val minBackoff = FiniteDuration(5, TimeUnit.SECONDS)
+  private val maxBackoff = FiniteDuration(1, TimeUnit.MINUTES)
+  private val randomFactor = 2.0d
 
   "Alpakka JMS" should {
     "happy path" in {
@@ -68,9 +72,9 @@ class JmsExampleSpec extends WordSpec
 
   def buildRestartSource(sourceFactory: () => Source[TextMessage, JmsConsumerControl]): Source[TextMessage, NotUsed] = {
     RestartSource.withBackoff(
-      minBackoff = FiniteDuration(5, TimeUnit.SECONDS),
-      maxBackoff = FiniteDuration(1, TimeUnit.MINUTES),
-      randomFactor = 2.0d
+      minBackoff = minBackoff,
+      maxBackoff = maxBackoff,
+      randomFactor = randomFactor
     )(sourceFactory)
   }
 
@@ -85,7 +89,11 @@ class JmsExampleSpec extends WordSpec
     val source = buildRestartSource( () => buildJmsSource(consumerSettings))
 
     val producerSettings = JmsProducerSettings(actorSys, jmsConnFactory).withQueue(destinationQName)
-    val sink = JmsProducer.textSink(producerSettings)
+    val sink = RestartSink.withBackoff(
+      minBackoff = minBackoff,
+      maxBackoff = maxBackoff,
+      randomFactor = randomFactor)(
+      () => JmsProducer.textSink(producerSettings))
 
     source
       .map {

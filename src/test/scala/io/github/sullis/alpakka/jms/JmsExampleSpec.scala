@@ -1,18 +1,16 @@
 package io.github.sullis.alpakka.jms
 
 import java.util.UUID
-
 import akka.Done
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings, OverflowStrategy, Supervision}
-import akka.stream.alpakka.jms.{JmsConsumerSettings, JmsPassThrough, JmsProducerSettings, JmsTextMessage}
-import org.scalatest.{Matchers, WordSpec}
-import jmstestkit.{JmsBroker, JmsQueue}
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings, Supervision}
+import akka.stream.alpakka.jms.{JmsConsumerSettings, JmsProducerSettings}
 import akka.stream.alpakka.jms.scaladsl.{JmsConsumer, JmsConsumerControl, JmsProducer}
-import akka.stream.scaladsl.{Keep, RunnableGraph, Sink, Source}
+import akka.stream.scaladsl.{Keep, RunnableGraph}
+import org.scalatest.{Matchers, WordSpec}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Milliseconds, Seconds, Span}
-
+import jmstestkit.{JmsBroker, JmsQueue}
 import scala.concurrent.Future
 
 class JmsExampleSpec extends WordSpec
@@ -30,9 +28,6 @@ class JmsExampleSpec extends WordSpec
       val sourceQueue = new JmsQueue(broker)
       val destinationQueue = new JmsQueue(broker)
 
-      sourceQueue.size shouldBe 0
-      destinationQueue.size shouldBe 0
-
       val runnable = buildRunnableGraph(sourceQueue, destinationQueue, actorSys, materializer)
       runnable.run()(materializer)
 
@@ -44,11 +39,10 @@ class JmsExampleSpec extends WordSpec
       sourceQueue.publishMessage("c")
 
       eventually {
+        sourceQueue.size shouldBe 0
+        destinationQueue.size shouldBe 3
         destinationQueue.toSeq shouldBe Seq("a", "b", "c")
       }
-
-      sourceQueue.size shouldBe 0
-      destinationQueue.size shouldBe 3
 
       broker.stop()
       actorSys.terminate()

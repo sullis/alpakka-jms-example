@@ -8,7 +8,7 @@ organization := "io.github.sullis"
 
 scalaVersion := "2.12.10"
 
-crossScalaVersions := Seq(scalaVersion.value, "2.11.12")
+crossScalaVersions := Seq(scalaVersion.value)
 
 scalacOptions += "-target:jvm-1.8"
 
@@ -17,7 +17,7 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 val logbackVersion = "1.2.3"
 
 libraryDependencies ++= Seq(
-  "com.gilt" %% "gfc-logging" % "0.0.8",
+  "org.gfccollective" %% "gfc-logging" % "1.0.0",
   "ch.qos.logback" % "logback-classic" % logbackVersion,
   "ch.qos.logback" % "logback-core" % logbackVersion,
   "com.lightbend.akka" %% "akka-stream-alpakka-jms" % "2.0.0-M2",

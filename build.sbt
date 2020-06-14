@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "com.lightbend.akka" %% "akka-stream-alpakka-jms" % "2.0.1",
   "io.github.sullis" %% "jms-testkit" % "0.2.8" % Test,
   "org.mockito"    % "mockito-core" % "3.3.3" % Test,
-  "org.scalatest" %% "scalatest" % "3.1.1" % Test
+  "org.scalatest" %% "scalatest" % "3.1.2" % Test
 )
 
 updateOptions := updateOptions.value.withGigahorse(false)

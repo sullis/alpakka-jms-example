@@ -20,7 +20,7 @@ libraryDependencies ++= Seq(
   "org.gfccollective" %% "gfc-logging" % "1.0.0",
   "ch.qos.logback" % "logback-classic" % logbackVersion,
   "ch.qos.logback" % "logback-core" % logbackVersion,
-  "com.lightbend.akka" %% "akka-stream-alpakka-jms" % "2.0.1",
+  "com.lightbend.akka" %% "akka-stream-alpakka-jms" % "2.0.2",
   "io.github.sullis" %% "jms-testkit" % "0.5.0" % Test,
   "org.mockito"    % "mockito-core" % "3.6.0" % Test,
   "org.scalatest" %% "scalatest" % "3.1.2" % Test

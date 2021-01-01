@@ -1,6 +1,3 @@
-enablePlugins(Sonatype)
-
-import scoverage.ScoverageKeys
 
 name := "alpakka-jms-example"
 
@@ -28,15 +25,7 @@ libraryDependencies ++= Seq(
 
 updateOptions := updateOptions.value.withGigahorse(false)
 
-useGpg := true
-
-releaseCrossBuild := true
-
-releasePublishArtifactsAction := PgpKeys.publishSigned.value
-
 publishMavenStyle := true
-
-publishTo := sonatypePublishTo.value
 
 publishArtifact in Test := false
 
@@ -44,6 +33,6 @@ pomIncludeRepository := { _ => false }
 
 licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 
-ScoverageKeys.coverageMinimum := 1.0
+// ScoverageKeys.coverageMinimum := 1.0
 
-ScoverageKeys.coverageFailOnMinimum := true
+// ScoverageKeys.coverageFailOnMinimum := true

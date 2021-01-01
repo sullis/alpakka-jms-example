@@ -10,7 +10,8 @@ import akka.stream.alpakka.jms.{JmsConsumerSettings, JmsProducerSettings, TxEnve
 import akka.stream.alpakka.jms.scaladsl.{JmsConsumer, JmsConsumerControl, JmsProducer}
 import akka.stream.scaladsl.{Keep, RestartSink, RestartSource, RunnableGraph, Source}
 import javax.jms.TextMessage
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Milliseconds, Seconds, Span}
 import jmstestkit.{JmsBroker, JmsQueue}
@@ -18,7 +19,7 @@ import jmstestkit.{JmsBroker, JmsQueue}
 import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 
-class JmsExampleSpec extends WordSpec
+class JmsExampleSpec extends AnyWordSpec
   with Matchers
   with Eventually {
 

@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ '15' ]
+        java: [ '16' ]
         scala: [ '2.13.5' ]
     steps:
     - uses: actions/checkout@v2

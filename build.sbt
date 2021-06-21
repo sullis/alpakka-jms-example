@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-core" % logbackVersion,
   "com.lightbend.akka" %% "akka-stream-alpakka-jms" % "3.0.1",
   "io.github.sullis" %% "jms-testkit" % "1.0.2" % Test,
-  "org.mockito"    % "mockito-core" % "3.11.1" % Test,
+  "org.mockito"    % "mockito-core" % "3.11.2" % Test,
   "org.scalatest" %% "scalatest" % "3.2.9" % Test
 )
 

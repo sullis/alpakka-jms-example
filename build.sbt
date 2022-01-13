@@ -3,7 +3,7 @@ name := "alpakka-jms-example"
 
 organization := "io.github.sullis"
 
-scalaVersion := "2.13.7"
+scalaVersion := "2.13.8"
 
 crossScalaVersions := Seq(scalaVersion.value)
 
